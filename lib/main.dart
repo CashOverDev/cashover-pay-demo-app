@@ -1,8 +1,32 @@
+import 'package:cashover_pay_demo_app/createOrder.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
+  //connectServicesToFirebaseEmulator();
   runApp(const MyApp());
+}
+
+Future<void> connectServicesToFirebaseEmulator() async {
+  if (true) {
+    try {
+      // Cloud Firestore
+      FirebaseFirestore.instance.settings = const Settings(
+        host: 'localhost:8086',
+        sslEnabled: false,
+        persistenceEnabled: false,
+      );
+      FirebaseFirestore.instance.useFirestoreEmulator('localhost', 8086);
+    } catch (e) {
+      print(e);
+    }
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -32,27 +56,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  void openApp() async {
-    try {
-      const platform = MethodChannel('app_open_channel');
-      final Map<String, String> params = <String, String>{
-        'androidPackageName': 'com.cashover.crypto.stg',
-        'iosBundleId': "com.cashover.crypto.stg",
-      };
-      final String result = await platform.invokeMethod('openApp', params);
-      if (result == "error") {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('App is not available')),
-        );
-      }
-    } on PlatformException catch (e) {
-      print("Failed to open app: '${e.message}'.");
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Unable to open app')),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -60,24 +63,76 @@ class _MyHomePageState extends State<MyHomePage> {
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+      body: ListView(
+        children: <Widget>[
+          Center(
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(30),
+                child: Image.network(
+                    height: 300,
+                    width: 300,
+                    "https://media.istockphoto.com/id/187310279/photo/brown-leather-shoe.jpg?s=612x612&w=0&k=20&c=N-G1SP8dDojp3M_ykS7tQuYI8OVPWM0XA8_knBiWRtY="),
+              ),
             ),
-            Text(
-              'Demo',
-              style: Theme.of(context).textTheme.headlineMedium,
+          ),
+          const Text(
+            "Niche shoes made for luxury",
+            style: TextStyle(
+              fontSize: 24,
             ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: openApp,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
+            textAlign: TextAlign.center,
+          ),
+          const Text(
+            "Just for 100 USD",
+            style: TextStyle(fontSize: 24),
+            textAlign: TextAlign.center,
+          ),
+          TextButton(
+              onPressed: () {
+                showModalBottomSheet(
+                    context: context,
+                    builder: (context) {
+                      return CreateOrder();
+                    });
+              },
+              child: Text("Pay with cashOver")),
+          StreamBuilder(
+              stream: FirebaseFirestore.instance
+                  .collection('Orders')
+                  .orderBy("orderId", descending: true)
+                  .snapshots(),
+              builder: (
+                context,
+                data,
+              ) {
+                if (data.hasError) {
+                  return Center(
+                    child: Text("Error: ${data.error}"),
+                  );
+                }
+                if (!data.hasData) {
+                  return const Center(
+                    child: CircularProgressIndicator(),
+                  );
+                }
+                return Column(
+                  children: List.generate(data.data!.docs.length, (index) {
+                    return ListTile(
+                        subtitle: Text(DateTime.fromMillisecondsSinceEpoch(
+                                int.parse(
+                                    data.data!.docs[index].data()["orderId"]))
+                            .toString()),
+                        tileColor:
+                            index.isEven ? Colors.green : Colors.blueAccent,
+                        title: Text(
+                          "OrderId: ${data.data!.docs[index].data()["orderId"]}/Payment status: ${data.data!.docs[index].data()["paymentStatus"]}/ Order status: ${data.data!.docs[index].data()["orderStatus"]}",
+                        ));
+                  }),
+                );
+              })
+        ],
       ),
     );
   }

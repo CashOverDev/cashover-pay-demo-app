@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "685105091509",
+    "project_id": "ecommerce-demo-cf18e",
+    "storage_bucket": "ecommerce-demo-cf18e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:685105091509:android:bc7381c55d6a79f5927ffc",
+        "android_client_info": {
+          "package_name": "com.example.cashover_pay_demo_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAvBF0J_lLoOdeRFqg_UKJ1VEFZ0C7sKmY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
