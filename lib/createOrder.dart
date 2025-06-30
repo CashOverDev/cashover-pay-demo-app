@@ -3,7 +3,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'dart:io';
-import 'package:android_intent_plus/android_intent.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class CreateOrder extends StatefulWidget {
@@ -68,22 +67,9 @@ class _CreateOrderState extends State<CreateOrder> {
     final jsonStringEncodedMetadata =
         metadata != null ? jsonEncode(metadata) : null;
     final url = Uri.parse(
-        'cashover://cashover.money/quickPay?username=salah.naoushi&amount=$amount&currency=$currency${webhookIds != null ? '&webhookIds=$webhookIds' : ''}${jsonStringEncodedMetadata != null ? '&metadata=$jsonStringEncodedMetadata' : ''}');
-
+        'https://cashover.money/pay?username=salah.naoushi&amount=$amount&currency=$currency${webhookIds != null ? '&webhookIds=$webhookIds' : ''}${jsonStringEncodedMetadata != null ? '&metadata=$jsonStringEncodedMetadata' : ''}');
     if (await canLaunchUrl(url)) {
       await launchUrl(url);
-    } else if (Platform.isAndroid) {
-      final AndroidIntent intent = AndroidIntent(
-          action: 'action_view',
-          data:
-              url.toString(), // replace com.example.app with your applicationId
-          arguments: {
-            "metadata": {
-              "orderId": DateTime.now().millisecondsSinceEpoch.toString(),
-              "description": "Buying local shoes through cashOver payments"
-            }
-          });
-      await intent.launch();
     } else {
       throw 'Could not launch $url';
     }
